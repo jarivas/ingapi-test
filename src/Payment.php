@@ -39,7 +39,7 @@ class Payment extends Base
 
         $signature = $this->getSignature($reqDate, $digest, 'post', $reqPath);
 
-        $data      = &$this->data;
+        $data      = $this->data;
         $headers[] = "Signature: $signature";
         $headers[] = 'X-ING-ReqID: '.Uuid::uuid4();
 

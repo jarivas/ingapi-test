@@ -16,6 +16,6 @@ cp .env.example .env
 ```
 
 ## CHALLENGES
-I think more time consuming task is to format the signing, I have spent a good chunk of time finding the an issue,
+I think more time consuming tasks were first, to format the signing, I have spent a good chunk of time finding the an issue,
 2 tabs where added by the IDE and were "invisble", finally I did realize tabs in front of Date: $date and Digest: $digest
-and getAccessToken worked.
+and getAccessToken worked, and second realizing that using the signed method to get the access token returns and invalid token.

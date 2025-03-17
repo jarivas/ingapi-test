@@ -2,7 +2,7 @@
 
 namespace INGApi\Tests;
 
-use INGApi\Base as IngBase;
+use INGApi\Greetings;
 
 class GreetingsTest extends Base
 {
@@ -10,7 +10,7 @@ class GreetingsTest extends Base
 
     public function testGreetingsOk(): void
     {
-        $instance = new IngBase($this->getLogger(), $this->getIngData());
+        $instance = new Greetings($this->getLogger(), $this->getIngData());
 
         $result = $instance->greetings();
 

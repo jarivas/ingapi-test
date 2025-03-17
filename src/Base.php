@@ -7,7 +7,6 @@ namespace INGApi;
 
 use Psr\Log\LoggerInterface;
 use HttpClient\Post;
-use HttpClient\Get;
 use Carbon\Carbon;
 
 class Base
@@ -70,44 +69,9 @@ class Base
 
 
     /**
-     * Summary of greetings
-     * @return array<string, string>|false
-     */
-    public function greetings(): false|array
-    {
-        $reqPath = '/greetings/single';
-        $dummy   = $this->getCommonHeaders('');
-
-        if (!$dummy) {
-            return false;
-        }
-
-        [
-            $headers,
-            $reqDate,
-            $digest,
-        ] = $dummy;
-
-        $signature = $this->getSignature($reqDate, $digest, 'post', $reqPath);
-
-        $headers[] = "Signature: $signature";
-        $data      = &$this->data;
-
-        $client = new Get($data->baseUrl);
-
-        $client->sslCertificates($data->tlsCertificate, $data->tlsPrivateKey);
-
-        $response = $client->send($reqPath, null, $headers, true);
-
-        return $this->processResponse($response);
-
-    }//end greetings()
-
-
-    /**
      * Summary of getCommonHeaders
      * @param string $json
-     * @return array<string|string[]>|false
+     * @return array{non-empty-array<int,string>, string, string}
      */
     protected function getCommonHeaders(string $json): false|array
     {
@@ -137,12 +101,12 @@ class Base
     /**
      * Summary of getCommonHeadersHelper
      * @param string $body
-     * @return array<string|string[]>
+     * @return array{non-empty-array<int,string>, string, string}
      */
     protected function getCommonHeadersHelper(string $body): array
     {
         $digest  = openssl_digest($body, 'SHA256', true);
-        $digest  = 'SHA-256='.base64_encode($digest);
+        $digest  = 'SHA-256='.base64_encode(strval($digest));
         $reqDate = Carbon::now()->toRfc7231String();
 
         return [
@@ -160,12 +124,12 @@ class Base
 
     /**
      * Summary of requestAccessTokenHelper
-     * @param mixed $scope
-     * @return array<array{grant_type: string|IngData|Post|string>}
+     * @param null|string $scope
+     * @return array<int,mixed>
      */
     protected function requestAccessTokenHelper(?string $scope): array
     {
-        $data    = &$this->data;
+        $data    = $this->data;
         $client  = new Post($data->baseUrl);
         $body    = ['grant_type' => 'client_credentials'];
         $reqPath = '/oauth2/token';
@@ -186,10 +150,10 @@ class Base
 
     /**
      * Summary of getRequesAccessHeaders
-     * @param array $body
+     * @param array<string,string> $body
      * @param string $httpMethod
      * @param string $reqPath
-     * @return bool|string|string[]
+     * @return array<int,string>|false
      */
     protected function getRequesAccessHeaders(array $body, string $httpMethod, string $reqPath): false|array
     {
@@ -220,12 +184,12 @@ EOT;
 
     protected function getSignature(string $reqDate, string $digest, string $httpMethod, string $reqPath): false|string
     {
-        $privateKey = $this->checkPrivateKeySignature();
-        if (!$privateKey) {
+        if (! $this->checkPrivateKeySignature()) {
             $this->logger->error('Invalid signing certificates');
+            return false;
         }
 
-        $pKeyid = openssl_get_privatekey($privateKey);
+        $pKeyid = openssl_get_privatekey("file://{$this->data->signingPrivateKey}", $this->data->signingPrivatePass);
 
         if (!$pKeyid) {
             $this->logger->error("error getting private key: {$this->data->signingPrivateKey}");
@@ -253,24 +217,39 @@ EOT;
 
     /**
      * Summary of checkPrivateKeySignature
-     * @return array<bool|string>|bool
+     * @return bool
      */
-    protected function checkPrivateKeySignature(): false|array
+    protected function checkPrivateKeySignature(): bool
     {
-        $certFile      = file_get_contents($this->data->signingCertificate);
-        $keyFile       = file_get_contents($this->data->signingPrivateKey);
+        $certFile = file_get_contents($this->data->signingCertificate);
+
+        if (!$certFile) {
+            $this->logger->error("file does not exists: {$this->data->signingCertificate}");
+            return false;
+        }
+
+        $keyFile = file_get_contents($this->data->signingPrivateKey);
+        $this->logger->error("file does not exists: {$this->data->signingPrivateKey}");
+        if (!$keyFile) {
+            return false;
+        }
+
         $keyPassphrase = $this->data->signingPrivatePass;
         $privateKey    = [
             $keyFile,
             $keyPassphrase,
         ];
-        $success       = openssl_x509_check_private_key($certFile,$privateKey);
 
-        return $success ? $privateKey : false;
+        return openssl_x509_check_private_key($certFile,$privateKey);
 
     }//end checkPrivateKeySignature()
 
 
+    /**
+     * Summary of processAccessTokenResponse
+     * @param array<string,mixed> $response
+     * @return false|string
+     */
     protected function processAccessTokenResponse(array $response): false|string
     {
         $data = $this->processResponse($response);
@@ -288,8 +267,8 @@ EOT;
 
     /**
      * Summary of processResponse
-     * @param array $response
-     * @return false|array
+     * @param array<string,mixed> $response
+     * @return false|array<string,mixed>
      */
     protected function processResponse(array $response): false|array
     {
