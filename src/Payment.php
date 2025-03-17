@@ -39,10 +39,13 @@ class Payment extends Base
 
         $signature = $this->getSignature($reqDate, $digest, 'post', $reqPath);
 
+        $data      = &$this->data;
         $headers[] = "Signature: $signature";
         $headers[] = 'X-ING-ReqID: '.Uuid::uuid4();
 
-        $client = new Post($this->data->baseUrl);
+        $client = new Post($data->baseUrl);
+
+        $client->sslCertificates($data->tlsCertificate, $data->tlsPrivateKey);
 
         $response = $client->sendJson($reqPath, $body, $headers);
 

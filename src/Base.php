@@ -91,8 +91,11 @@ class Base
         $signature = $this->getSignature($reqDate, $digest, 'post', $reqPath);
 
         $headers[] = "Signature: $signature";
+        $data      = &$this->data;
 
-        $client = new Get($this->data->baseUrl);
+        $client = new Get($data->baseUrl);
+
+        $client->sslCertificates($data->tlsCertificate, $data->tlsPrivateKey);
 
         $response = $client->send($reqPath, null, $headers, true);
 
