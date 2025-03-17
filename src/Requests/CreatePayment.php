@@ -25,6 +25,10 @@ class CreatePayment implements JsonSerializable
     }//end __construct()
 
 
+    /**
+     * Summary of toArray
+     * @return array{fixedAmount: array{value: float, currency: 'EUR'|'USD'},validUntil: string, maximumAllowedPayments: int, purchaseId: non-empty-string, description: string, returnUrl: string}
+     */
     public function toArray(): array
     {
         $validUntil = Carbon::now()->addMinutes($this->minutes)->toRfc3339String(true);
@@ -44,7 +48,7 @@ class CreatePayment implements JsonSerializable
     }//end toArray()
 
 
-    public function toJson(): string
+    public function toJson(): string|false
     {
         return json_encode($this);
 

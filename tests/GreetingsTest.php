@@ -16,6 +16,10 @@ class GreetingsTest extends Base
 
         $this->assertIsArray($result);
 
+        $this->assertArrayHasKey('messageTimestamp', $result);
+        $this->assertArrayHasKey('message', $result);
+        $this->assertArrayHasKey('id', $result);
+
     }//end testGreetingsOk()
 
 

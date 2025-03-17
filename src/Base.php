@@ -69,14 +69,24 @@ class Base
     }//end requestAccessTokenHttpSigned()
 
 
+    /**
+     * Summary of greetings
+     * @return array<string, string>|false
+     */
     public function greetings(): false|array
     {
         $reqPath = '/greetings/single';
+        $dummy   = $this->getCommonHeaders('');
+
+        if (!$dummy) {
+            return false;
+        }
+
         [
             $headers,
             $reqDate,
             $digest,
-        ]        = $this->getCommonHeaders('');
+        ] = $dummy;
 
         $signature = $this->getSignature($reqDate, $digest, 'post', $reqPath);
 
@@ -91,6 +101,11 @@ class Base
     }//end greetings()
 
 
+    /**
+     * Summary of getCommonHeaders
+     * @param string $json
+     * @return array<string|string[]>|false
+     */
     protected function getCommonHeaders(string $json): false|array
     {
         $accessToken = $this->requestAccessTokenHttpSigned();
@@ -116,6 +131,11 @@ class Base
     }//end getCommonHeaders()
 
 
+    /**
+     * Summary of getCommonHeadersHelper
+     * @param string $body
+     * @return array<string|string[]>
+     */
     protected function getCommonHeadersHelper(string $body): array
     {
         $digest  = openssl_digest($body, 'SHA256', true);
@@ -135,6 +155,11 @@ class Base
     }//end getCommonHeadersHelper()
 
 
+    /**
+     * Summary of requestAccessTokenHelper
+     * @param mixed $scope
+     * @return array<array{grant_type: string|IngData|Post|string>}
+     */
     protected function requestAccessTokenHelper(?string $scope): array
     {
         $data    = &$this->data;
@@ -156,6 +181,13 @@ class Base
     }//end requestAccessTokenHelper()
 
 
+    /**
+     * Summary of getRequesAccessHeaders
+     * @param array $body
+     * @param string $httpMethod
+     * @param string $reqPath
+     * @return bool|string|string[]
+     */
     protected function getRequesAccessHeaders(array $body, string $httpMethod, string $reqPath): false|array
     {
         [
@@ -218,6 +250,10 @@ digest: $digest";
     }//end getSignature()
 
 
+    /**
+     * Summary of checkPrivateKeySignature
+     * @return array<bool|string>|bool
+     */
     protected function checkPrivateKeySignature(): false|array
     {
         $certFile      = file_get_contents($this->data->signingCertificate);
@@ -243,6 +279,11 @@ digest: $digest";
     }//end processAccessTokenResponse()
 
 
+    /**
+     * Summary of processResponse
+     * @param array $response
+     * @return false|array
+     */
     protected function processResponse(array $response): false|array
     {
         if (!$response['success']) {

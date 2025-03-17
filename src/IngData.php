@@ -22,6 +22,10 @@ class IngData
     }//end __construct()
 
 
+    /**
+     * Summary of toArray
+     * @return array<string, string>
+     */
     public function toArray(): array
     {
         return (array) $this;

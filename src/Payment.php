@@ -18,11 +18,24 @@ class Payment extends Base
     {
         $reqPath = '/payment-requests';
         $body    = $request->toArray();
+        $json    = json_encode($body);
+
+        if (!$json) {
+            $this->logger->error('invalid request');
+            return false;
+        }
+
+        $dummy = $this->getCommonHeaders($json);
+
+        if (!$dummy) {
+            return false;
+        }
+
         [
             $headers,
             $reqDate,
             $digest,
-        ]        = $this->getCommonHeaders(json_encode($body));
+        ] = $dummy;
 
         $signature = $this->getSignature($reqDate, $digest, 'post', $reqPath);
 
