@@ -111,7 +111,7 @@ class Base
      */
     protected function getCommonHeaders(string $json): false|array
     {
-        $accessToken = $this->requestAccessTokenHttpSigned();
+        $accessToken = $this->requestAccessToken();
 
         if (!$accessToken) {
             return false;
@@ -236,9 +236,7 @@ EOT;
             $reqPath = "/$reqPath";
         }
 
-        $data = "(request-target): $httpMethod $reqPath
-date: $reqDate
-digest: $digest";
+        $data = "(request-target): $httpMethod {$reqPath}\ndate: {$reqDate}\ndigest: $digest";
 
         $success = openssl_sign($data, $signature, $pKeyid, self::SIGNING_ALGO);
 
@@ -277,6 +275,12 @@ digest: $digest";
     {
         $data = $this->processResponse($response);
 
+        if (!empty($data['message'])) {
+            $this->logger->error($data['message']);
+
+            return false;
+        }
+
         return $data ? $data['access_token'] : false;
 
     }//end processAccessTokenResponse()
@@ -294,16 +298,10 @@ digest: $digest";
             return false;
         }
 
-        $data = json_decode($response['result'], true);
+        $data = is_string($response['result']) ? json_decode($response['result'], true) : $response['result'];
 
         if (empty($data)) {
             $this->logger->error('invalid json returned');
-
-            return false;
-        }
-
-        if (!empty($data['message'])) {
-            $this->logger->error($data['message']);
 
             return false;
         }
