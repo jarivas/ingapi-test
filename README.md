@@ -2,9 +2,13 @@
 
 ## DEV REQUIREMENTS
 Docker
+
+## DEV INSTALL
 ```bash
 cp .env.example .env
+docker compose up -d
 ./setup-githook.sh
+composer install
 ```
 
 ## DEV RECOMMENDATIONS
