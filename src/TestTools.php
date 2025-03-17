@@ -276,7 +276,6 @@ class TestTools
                 $result = self::getFormulaFunctionsNested($string, $countStartTag);
             }
         } catch (Exception $exception) {
-            dd($exception->getMessage());
             if ($throwError) {
                 throw $exception;
             }
@@ -287,16 +286,17 @@ class TestTools
     }//end getFormulaFunctions()
 
 
-    public static function escapeQuotesAndBackslash($string, $quotes='"'):string
+    /**
+     * Summary of escapeQuotesAndBackslash
+     * @param string $string
+     * @param string $quotes
+     * @return string
+     */
+    public static function escapeQuotesAndBackslash(string $string, string $quotes='"'):string
     {
-        if (!is_string($string)) {
-            $string = json_encode($string);
-        }
-
         $string = self::escapeUnescapedQuotes($string, $quotes);
-        $string = self::escapeUnescapedBackslash($string);
 
-        return $string;
+        return self::escapeUnescapedBackslash($string);
 
     }//end escapeQuotesAndBackslash()
 
@@ -308,15 +308,17 @@ class TestTools
      * @param string $quotes
      * Which quote needs to be escaped
      *
-     * @return string|string[]|null
+     * @return string
      */
-    public static function escapeUnescapedQuotes($string, $quotes='"')
+    public static function escapeUnescapedQuotes(string $string, string $quotes='"'): string
     {
-        if (!is_string($string)) {
-            $string = json_encode($string);
+        $result = preg_replace('/(?<!\\\\)(?:\\\\\\\\)*\K'.$quotes.'/', '\\\\\0', $string);
+
+        if (!is_string($result)) {
+            throw new Exception('escapeUnescapedQuotes error non string result');
         }
 
-        return preg_replace('/(?<!\\\\)(?:\\\\\\\\)*\K'.$quotes.'/', '\\\\\0', $string);
+        return $result;
 
     }//end escapeUnescapedQuotes()
 
@@ -324,17 +326,19 @@ class TestTools
     /**
      * Method that escapes the unescaped backslashes that are not already being used to escape other characters
      *
-     * @param $string
+     * @param string $string
      *
-     * @return string|string[]|null
+     * @return string
      */
-    public static function escapeUnescapedBackslash($string)
+    public static function escapeUnescapedBackslash(string $string): string
     {
-        if (!is_string($string)) {
-            $string = json_encode($string);
+        $result = preg_replace('/\\\\(?<!\\\\\\\\)(?:\\\\\\\\)*(?![\\\\"])/', '\\\\\0', $string);
+
+        if (!is_string($result)) {
+            throw new Exception('escapeUnescapedBackslash error non string result');
         }
 
-        return preg_replace('/\\\\(?<!\\\\\\\\)(?:\\\\\\\\)*(?![\\\\"])/', '\\\\\0', $string);
+        return $result;
 
     }//end escapeUnescapedBackslash()
 
@@ -395,9 +399,11 @@ class TestTools
             throw new Exception("getFormulaFunction error, not allowed $formula");
         }
 
+        $functionParams = isset($matches[2]) ? explode('|', $matches[2]) : [];
+
         return [
             self::getCallback($functionName),
-            explode('|', $matches[2]),
+            $functionParams,
         ];
 
     }//end getFormulaFunction()
@@ -448,6 +454,12 @@ class TestTools
     }//end getCallback()
 
 
+    /**
+     * Summary of division
+     * @param array<float> $numbers
+     * @return float
+     * @phpstan-ignore method.unused
+     */
     private static function division(...$numbers): float
     {
         $max    = count($numbers);
@@ -462,6 +474,12 @@ class TestTools
     }//end division()
 
 
+    /**
+     * Summary of multiply
+     * @param array<float> $numbers
+     * @return float
+     * @phpstan-ignore method.unused
+     */
     private static function multiply(...$numbers): float
     {
         $max    = count($numbers);
