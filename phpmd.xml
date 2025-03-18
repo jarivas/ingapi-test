@@ -5,9 +5,6 @@
         <exclude name="StaticAccess" />
         <exclude name="BooleanArgumentFlag" />
     </rule>
-    <rule ref="rulesets/codesize.xml">
-        <exclude name="CyclomaticComplexity" />
-    </rule>
     <rule ref="rulesets/controversial.xml" />
     <rule ref="rulesets/design.xml">
         <exclude name="NumberOfChildren" />
@@ -34,8 +31,5 @@
     <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity" />
     <rule ref="rulesets/codesize.xml/CyclomaticComplexity">
         <priority>1</priority>
-        <properties>
-            <property name="reportLevel" value="10" />
-        </properties>
     </rule>
 </ruleset>
